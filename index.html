@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💕 ¿Salimos?</title>
+    <title>💕 ¿Quieres salir conmigo?</title>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
@@ -123,7 +123,7 @@
         <div class="screen" id="screen5">
             <h1>¡Cita Confirmada! 🎊</h1>
             <div class="final" id="finalMessage"></div>
-            <p style="color:#22c55e; margin-top:10px;">Enviando por email...</p>
+            <p style="color:#22c55e; margin-top:15px;">Enviando por email...</p>
         </div>
 
     </div>
@@ -227,7 +227,7 @@
             document.getElementById('screen4').classList.remove('active');
             document.getElementById('screen5').classList.add('active');
 
-            // Lanza confeti
+            // Confeti
             launchConfetti();
 
             // Enviar Email
@@ -236,26 +236,16 @@
                 pelicula: selectedMovie || "No aplica",
                 fecha: new Date(date).toLocaleDateString('es-ES'),
                 hora: time
-            }).then(() => {
-                console.log("✅ Email enviado");
-            }).catch(err => {
-                console.error("Error:", err);
             });
         }
 
-        // Función de confeti
         function launchConfetti() {
-            const duration = 4000;
+            const duration = 5000;
             const end = Date.now() + duration;
-
             const interval = setInterval(() => {
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
+                confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
                 if (Date.now() > end) clearInterval(interval);
-            }, 250);
+            }, 300);
         }
 
         function restart() {
