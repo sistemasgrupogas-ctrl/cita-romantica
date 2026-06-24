@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 ¿Salimos?</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+       
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ff6b6b, #4f46e5);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .screen {
+            padding: 30px 25px;
+            text-align: center;
+            min-height: 460px;
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        h1 { color: #4f46e5; margin-bottom: 20px; }
+        .btn {
+            padding: 16px 30px;
+            margin: 12px;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .btn-yes { background: #22c55e; color: white; }
+        .btn-no { background: #ef4444; color: white; position: relative; }
+        
+        .options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+        .option-btn {
+            padding: 16px;
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .option-btn:hover {
+            background: #4f46e5;
+            color: white;
+            transform: scale(1.05);
+        }
+        input[type="date"], input[type="time"] {
+            padding: 12px; font-size: 16px; border-radius: 10px;
+            border: 1px solid #cbd5e1; margin: 15px 0; width: 80%;
+        }
+        .final {
+            background: #f0fdf4;
+            border: 3px solid #22c55e;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            font-size: 19px;
+            line-height: 1.8;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="screen active" id="screen1">
+            <h1>💕 ¿Quieres salir conmigo?</h1>
+            <button class="btn btn-yes" onclick="acceptInvite()">¡SÍ, CLARO! ❤️</button>
+            <button class="btn btn-no" id="noBtn">No</button>
+        </div>
+
+        <div class="screen" id="screen2">
+            <h1>¡Genial! 🎉</h1>
+            <p style="font-size:18px; margin:20px 0;">¿A dónde quieres ir?</p>
+            <div class="options" id="places"></div>
+        </div>
+
+        <div class="screen" id="screenCine">
+            <h1>🎥 Elige la película</h1>
+            <div class="options" id="movies"></div>
+            <button class="btn btn-yes" onclick="backToPlaces()">← Volver</button>
+        </div>
+
+        <div class="screen" id="screen3">
+            <h1>¿Qué día? 📅</h1>
+            <input type="date" id="dateInput">
+            <br>
+            <button class="btn btn-yes" onclick="selectDate()">Continuar →</button>
+        </div>
+
+        <div class="screen" id="screen4">
+            <h1>¿A qué hora? ⏰</h1>
+            <input type="time" id="timeInput">
+            <br>
+            <button class="btn btn-yes" onclick="finish()">¡Confirmar cita! ❤️</button>
+        </div>
+
+        <div class="screen" id="screen5">
+            <h1>¡Cita Confirmada! 🎊</h1>
+            <div class="final" id="finalMessage"></div>
+            <p style="color:#22c55e; margin-top:10px;">Enviando por email...</p>
+        </div>
+
+    </div>
+
+    <script>
+        let selectedPlace = "";
+        let selectedMovie = "";
+
+        const places = ["Cine 🎥", "Boliche 🎳", "Pizza 🍕", "Plaza 🌳", "Casa 🏠", "Paseo en la playa 🏖️", "Café ☕", "Parque 🦋"];
+        const movies = ["La La Land", "Titanic", "Amor de verdad", "Before Sunrise", "The Notebook", "Cincuenta sombras"];
+
+        // ==================== TUS DATOS ====================
+        emailjs.init("TKf1yj0BW9Cz7EXTI");
+        const SERVICE_ID = "service_ncbsyow";
+        const TEMPLATE_ID = "template_y6uyerb";
+        // =================================================
+
+        const noBtn = document.getElementById('noBtn');
+        noBtn.addEventListener('mouseover', () => {
+            const x = Math.random() * (window.innerWidth - 150);
+            const y = Math.random() * (window.innerHeight - 100);
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+        });
+
+        function acceptInvite() {
+            document.getElementById('screen1').classList.remove('active');
+            document.getElementById('screen2').classList.add('active');
+            loadPlaces();
+        }
+
+        function loadPlaces() {
+            const placesDiv = document.getElementById('places');
+            placesDiv.innerHTML = '';
+            places.forEach(place => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = place;
+                btn.onclick = () => selectPlace(place);
+                placesDiv.appendChild(btn);
+            });
+        }
+
+        function selectPlace(place) {
+            selectedPlace = place;
+            if (place.includes("Cine")) {
+                document.getElementById('screen2').classList.remove('active');
+                document.getElementById('screenCine').classList.add('active');
+                loadMovies();
+            } else {
+                document.getElementById('screen2').classList.remove('active');
+                document.getElementById('screen3').classList.add('active');
+            }
+        }
+
+        function loadMovies() {
+            const moviesDiv = document.getElementById('movies');
+            moviesDiv.innerHTML = '';
+            movies.forEach(movie => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = movie;
+                btn.onclick = () => {
+                    selectedMovie = movie;
+                    document.getElementById('screenCine').classList.remove('active');
+                    document.getElementById('screen3').classList.add('active');
+                };
+                moviesDiv.appendChild(btn);
+            });
+        }
+
+        function backToPlaces() {
+            document.getElementById('screenCine').classList.remove('active');
+            document.getElementById('screen2').classList.add('active');
+        }
+
+        function selectDate() {
+            if (!document.getElementById('dateInput').value) return alert("Elige una fecha ❤️");
+            document.getElementById('screen3').classList.remove('active');
+            document.getElementById('screen4').classList.add('active');
+        }
+
+        function finish() {
+            const date = document.getElementById('dateInput').value;
+            const time = document.getElementById('timeInput').value;
+            if (!time) return alert("Elige una hora por favor");
+
+            let lugar = selectedPlace;
+            if (selectedMovie) lugar += ` - ${selectedMovie}`;
+
+            const mensajeHTML = `
+                ¡Cita Confirmada! ❤️<br><br>
+                📍 Lugar: <strong>${lugar}</strong><br>
+                📅 Fecha: ${new Date(date).toLocaleDateString('es-ES')}<br>
+                ⏰ Hora: ${time} hs<br><br>
+                ¡Te veo ahí! 🥰
+            `;
+
+            document.getElementById('finalMessage').innerHTML = mensajeHTML;
+            document.getElementById('screen4').classList.remove('active');
+            document.getElementById('screen5').classList.add('active');
+
+            // Lanza confeti
+            launchConfetti();
+
+            // Enviar Email
+            emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+                lugar: lugar,
+                pelicula: selectedMovie || "No aplica",
+                fecha: new Date(date).toLocaleDateString('es-ES'),
+                hora: time
+            }).then(() => {
+                console.log("✅ Email enviado");
+            }).catch(err => {
+                console.error("Error:", err);
+            });
+        }
+
+        // Función de confeti
+        function launchConfetti() {
+            const duration = 4000;
+            const end = Date.now() + duration;
+
+            const interval = setInterval(() => {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+                if (Date.now() > end) clearInterval(interval);
+            }, 250);
+        }
+
+        function restart() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
